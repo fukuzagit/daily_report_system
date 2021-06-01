@@ -37,7 +37,7 @@ public class ReportsUpdateServlet extends HttpServlet {
      */
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String _token = request.getParameter("_token");
-        if (_token != null && _token.equals(request.getSession().getId())) {
+        if(_token != null && _token.equals(request.getSession().getId())) {
             EntityManager em = DBUtil.createEntityManager();
 
             Report r = em.find(Report.class, (Integer)(request.getSession().getAttribute("report_id")));
@@ -48,10 +48,12 @@ public class ReportsUpdateServlet extends HttpServlet {
             r.setUpdated_at(new Timestamp(System.currentTimeMillis()));
 
             List<String> errors = ReportValidator.validate(r);
-            if (errors.size() > 0) {
+            if(errors.size() > 0) {
                 em.close();
 
-                request.setAttribute("_token", errors);
+                request.setAttribute("_token", request.getSession().getId());
+                request.setAttribute("report", r);
+                request.setAttribute("errors", errors);
 
                 RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/reports/edit.jsp");
                 rd.forward(request, response);
@@ -59,7 +61,7 @@ public class ReportsUpdateServlet extends HttpServlet {
                 em.getTransaction().begin();
                 em.getTransaction().commit();
                 em.close();
-                request.getSession().setAttribute("flush", "更新が完了しました");
+                request.getSession().setAttribute("flush", "更新が完了しました。");
 
                 request.getSession().removeAttribute("report_id");
 
